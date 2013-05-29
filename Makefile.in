@@ -1,0 +1,54 @@
+.SUFFIXES:
+.SUFFIXES: .c .o
+
+CC = @CC@
+CFLAGS = @CFLAGS@ @XML_CFLAGS@ @CURL_CFLAGS@ @FUSE_CFLAGS@ @OPENSSL_CFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@ @XML_LIBS@ @CURL_LIBS@ @FUSE_LIBS@ @OPENSSL_LIBS@
+INSTALL = @INSTALL@
+MKDIR_P = @MKDIR_P@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = $(DESTDIR)$(exec_prefix)/bin
+
+SOURCES=cloudfsapi.c cloudfuse.c cloudfscache.c
+HEADERS=cloudfsapi.h cloudfscache.h
+
+all: swiftfuse
+
+install: all $(bindir)
+	$(INSTALL) swiftfuse $(bindir)/swiftfuse
+
+uninstall:
+	/bin/rm -f $(bindir)/swiftfuse
+
+$(bindir):
+	$(MKDIR_P) $(bindir)
+
+swiftfuse: $(SOURCES) $(HEADERS)
+	$(CC) $(CFLAGS) -o swiftfuse $(SOURCES) $(LIBS)
+
+clean:
+	/bin/rm -f swiftfuse
+
+distclean: clean
+	/bin/rm -f Makefile config.h config.status config.cache config.log \
+		marklib.dvi
+
+mostlyclean: clean
+
+maintainer-clean: clean
+
+config.h.in: stamp-h.in
+stamp-h.in: configure.in
+	autoheader
+	echo timestamp > stamp-h.in
+
+config.h: stamp-h
+stamp-h: config.h.in config.status
+	./config.status
+Makefile: Makefile.in config.status
+	./config.status
+config.status: configure
+	./config.status --recheck
+
